@@ -79,3 +79,61 @@ __SYSCALL(__NR_riscv_hwprobe, sys_riscv_hwprobe)
  * like, group readers and writers together, and use arguments to
  * specify which type is doing.
  */
+#ifndef __NR_printInt
+#define __NR_printInt (__NR_arch_specific_syscall) /* _244_ */
+#endif
+__SYSCALL(__NR_printInt, sys_printInt)
+
+#ifndef __NR_readInt
+#define __NR_readInt (__NR_arch_specific_syscall + 1) /* _245_ */
+#endif
+__SYSCALL(__NR_readInt, sys_readInt)
+
+#ifndef __NR_printChar
+#define __NR_printChar (__NR_arch_specific_syscall + 2) /* _246_ */
+#endif
+__SYSCALL(__NR_printChar, sys_printChar)
+
+#ifndef __NR_readChar
+#define __NR_readChar (__NR_arch_specific_syscall + 3) /* _247_ */
+#endif
+__SYSCALL(__NR_readChar, sys_readChar)
+
+#ifndef __NR_printStr
+#define __NR_printStr (__NR_arch_specific_syscall + 4) /* _248_ */
+#endif
+__SYSCALL(__NR_printStr, sys_printStr)
+
+#ifndef __NR_readStr
+#define __NR_readStr (__NR_arch_specific_syscall + 5) /* _249_ */
+#endif
+__SYSCALL(__NR_readStr, sys_readStr)
+
+/*
+ * Belows are TODO
+ * 
+ */
+#ifndef __NR_printFloat
+#define __NR_printFloat (__NR_arch_specific_syscall + 6) /* __250__ */
+#endif
+__SYSCALL(__NR_printFloat, sys_printFloat)
+
+#ifndef __NR_readFloat
+#define __NR_readFloat (__NR_arch_specific_syscall + 7) /* __251__ */
+#endif
+__SYSCALL(__NR_readFloat, sys_readFloat)
+
+#ifndef __NR_printDouble
+#define __NR_printDouble (__NR_arch_specific_syscall + 8) /* __252__ */
+#endif
+__SYSCALL(__NR_printDouble, sys_printDouble)
+
+#ifndef __NR_readDouble
+#define __NR_readDouble (__NR_arch_specific_syscall + 9) /* __253__ */
+#endif
+__SYSCALL(__NR_readDouble, sys_readDouble)
+
+#ifndef __NR_printHex
+#define __NR_printHex (__NR_arch_specific_syscall + 10) /* __254__ */
+#endif
+__SYSCALL(__NR_printHex, sys_printHex)
