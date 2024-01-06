@@ -8942,6 +8942,164 @@ static abi_long do_riscv_hwprobe(CPUArchState *cpu_env, abi_long arg1,
 }
 #endif /* TARGET_NR_riscv_hwprobe */
 
+/*
+* New syscalls for Usask CMPT-215 classroom use (2024 Winter)
+* Modified 2024-01-06
+* Mark Jia <mij623@usask.ca>
+*/
+#if defined(TARGET_NR_printInt)
+/*
+* arg1: integer to print
+*/
+static abi_long do_printInt(abi_long arg1)
+{
+#ifdef BAD_CODE
+    abi_long ret;
+    char int_buffer[12]; /* Buffer for integer conversion */
+    int int_length = 0;  /* Length of the converted integer */
+    int num_to_print = (int)arg1;
+    int is_negative = num_to_print < 0 ? 1 : 0;
+
+    /* Convert the integer to a string */
+    if (is_negative) {
+        num_to_print = -num_to_print;
+        int_buffer[int_length++] = '-';
+    }
+    do {
+        int_buffer[int_length++] = (num_to_print % 10) + '0';
+        num_to_print /= 10;
+    } while (num_to_print && int_length < sizeof(int_buffer)-1);
+    int_buffer[int_length] = '\0';
+
+    /* reverse the buffer */
+    for (int i = 0; i < int_length / 2; i++) {
+        char tmp = int_buffer[i];
+        int_buffer[i] = int_buffer[int_length - i - 1];
+        int_buffer[int_length - i - 1] = tmp;
+    }
+    
+    /* write the string to STDOUT */
+    ret = get_errno(safe_write(1, int_buffer, int_length));
+    return ret;
+#endif
+    abi_long ret;
+    ret = get_errno(printf("%d", (int)arg1));
+    
+}
+#endif /* TARGET_NR_printInt */
+
+#if defined(TARGET_NR_readInt)
+static abi_long do_readInt()
+{   
+#ifdef BAD_CODE
+    abi_long ret;
+    char read_int_buffer[12];
+    int read_len = get_errno(safe_read(0, read_int_buffer, sizeof(read_int_buffer) - 1)); // Read up to 11 chars
+    if (read_len <= 0) {
+        ret = read_len; /* Return error code or 0 if no data read */
+        return ret;
+    }
+    read_int_buffer[read_len] = '\0'; /* Null-terminate the string */
+    /* Convert string to integer */
+    int result = 0, sign = 1, index = 0;
+    if (read_int_buffer[0] == '-') { /* Handle negative numbers */
+        sign = -1;
+        index = 1;
+    }
+    for (; index < read_len; index++) {
+        if (read_int_buffer[index] < '0' || read_int_buffer[index] > '9') {
+            ret = -1; /* Invalid integer character */
+            return ret;
+        }
+        result = result * 10 + (read_int_buffer[index] - '0');
+    }
+    ret = sign * result;
+    return ret;
+#endif
+    int ret;
+    scanf("%d", &ret);
+    return (abi_long)ret;
+}
+#endif /* TARGET_NR_readInt */
+
+#if defined(TARGET_NR_printStr)
+/*
+* arg1: pointer to string to print
+*/
+static abi_long do_printStr(abi_long arg1) {
+    char *p;
+    int str_length = 0;
+    const int max_length = 1024;
+
+    if (!(p = lock_user(VERIFY_READ, arg1, max_length, 1))) {
+        return -TARGET_EFAULT;
+    }
+
+    /* Count the length of the string up to max_length or null terminator */
+    while (str_length < max_length && p[str_length]) {
+        str_length++;
+    }
+    /* Perform the write operation to STDOUT */
+    abi_long ret = get_errno(safe_write(1, p, str_length)); 
+    unlock_user(p, arg1, 0);
+    return ret;
+}
+#endif /* TARGET_NR_printStr */
+
+#if defined(TARGET_NR_readStr)
+/*
+* arg1: pointer to buffer to read into
+*/
+static abi_long do_readStr(abi_long arg1, abi_long arg2)
+{
+    char *p;
+    abi_long max_length = arg2;
+
+    if (!(p = lock_user(VERIFY_WRITE, arg1, max_length, 0))) {
+        return -TARGET_EFAULT;
+    }
+
+    /* Perform the read operation from STDIN */
+    abi_long ret = get_errno(safe_read(0, p, max_length - 1)); 
+    
+
+    if (ret > 0) {
+        p[ret] = '\0'; /* Null-terminate the string */
+    } else if (ret == 0) {
+        /* Handle EOF */
+        p[0] = '\0';
+    }
+
+    unlock_user(p, arg1, ret);
+    return ret;
+}
+#endif /* TARGET_NR_readStr */
+
+#if defined(TARGET_NR_printChar)
+/*
+* arg1: character to print
+*/
+static abi_long do_printChar(abi_long arg1)
+{
+    char ch = (char)arg1;
+    return get_errno(safe_write(1, &ch, 1)); 
+}
+#endif /* TARGET_NR_printChar */
+
+#if defined(TARGET_NR_readChar)
+static abi_long do_readChar()
+{
+    char ch;
+    abi_long ret = get_errno(safe_read(0, &ch, 1));
+
+    if (ret > 0) {
+        return (unsigned char)ch;
+    } else {
+        return ret; /* Return error code or 0 (EOF) */
+    }
+}
+#endif /* TARGET_NR_readChar */
+
 #if defined(TARGET_NR_pivot_root) && defined(__NR_pivot_root)
 _syscall2(int, pivot_root, const char *, new_root, const char *, put_old)
 #endif
@@ -13617,6 +13775,41 @@ static abi_long do_syscall1(CPUArchState *cpu_env, int num, abi_long arg1,
 #if defined(TARGET_NR_riscv_hwprobe)
     case TARGET_NR_riscv_hwprobe:
         return do_riscv_hwprobe(cpu_env, arg1, arg2, arg3, arg4, arg5);
+#endif
+
+/*
+* New syscalls for Usask CMPT-215 classroom use (2024 Winter)
+* Modified 2024-01-06
+* Mark Jia <mij623@usask.ca>
+*/
+#if defined(TARGET_NR_printInt)
+    case TARGET_NR_printInt:
+        return do_printInt(arg1);
+#endif
+
+#if defined(TARGET_NR_readInt)
+    case TARGET_NR_readInt:
+        return do_readInt();
+#endif
+
+#if defined(TARGET_NR_printStr)
+    case TARGET_NR_printStr:
+        return do_printStr(arg1);
+#endif
+
+#if defined(TARGET_NR_readStr)
+    case TARGET_NR_readStr:
+        return do_readStr(arg1, arg2);
+#endif
+
+#if defined(TARGET_NR_printChar)
+    case TARGET_NR_printChat:
+        return do_printChar(arg1);
+#endif
+
+#if defined(TARGET_NR_readChar)
+    case TARGET_NR_readChar:
+        return do_readChar();
 #endif
 
     default:
