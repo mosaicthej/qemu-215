@@ -52,3 +52,30 @@ __SYSCALL(__NR_riscv_flush_icache, sys_riscv_flush_icache)
 #define __NR_riscv_hwprobe (__NR_arch_specific_syscall + 14)
 #endif
 __SYSCALL(__NR_riscv_hwprobe, sys_riscv_hwprobe)
+
+
+/*
+ * New syscalls for Usask CMPT-215 classroom use (2024 Winter)
+ * Modified 2024-01-06
+ * Mark Jia <mij623@usask.ca>
+ */
+
+/*
+ * Wanted things:
+ * Really want functionalities as this has:
+ * https://github.com/TheThirdOne/rars/wiki/Environment-Calls
+ *
+ * Printer and Reader for:
+ * - int
+ * - char   (stage 1)
+ * - string (stage 2)
+ * - float
+ * - double (stage 3)
+ * So these will take up 2x5=10 syscalls,
+ * with the existing 2 calls, there are 4 syscall numbers left.
+ * will see... Maybe things like rand, or sync (sleep) stuff...
+ * 
+ * When the numbers runs out, can modify this again to do things
+ * like, group readers and writers together, and use arguments to
+ * specify which type is doing.
+ */
