@@ -229,6 +229,21 @@
 #define TARGET_NR_arch_specific_syscall 244
 #define TARGET_NR_riscv_flush_icache (TARGET_NR_arch_specific_syscall + 15)
 #define TARGET_NR_riscv_hwprobe (TARGET_NR_arch_specific_syscall + 14)
+/*
+ * New syscalls for Usask CMPT-215 classroom use (2024 Winter)
+ * Modified 2024-01-06
+ * Mark Jia <mij623@usask.ca>
+ */
+#define TARGET_NR_printInt (__NR_arch_specific_syscall)
+#define TARGET_NR_readInt (__NR_arch_specific_syscall + 1)
+#define TARGET_NR_printChar (__NR_arch_specific_syscall + 2)
+#define TARGET_NR_readChar (__NR_arch_specific_syscall + 3)
+#define TARGET_NR_printStr (__NR_arch_specific_syscall + 4) 
+#define TARGET_NR_readStr (__NR_arch_specific_syscall + 5) 
+/*
+ * done, so used 244-249
+ * */
+
 #define TARGET_NR_prlimit64 261
 #define TARGET_NR_fanotify_init 262
 #define TARGET_NR_fanotify_mark 263
