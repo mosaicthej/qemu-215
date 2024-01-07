@@ -49,7 +49,7 @@ read_includes()
         -I${linux}/arch/${arch}/include/uapi/ \
         -I${linux}/include/uapi \
         -I${TMP} \
-        "${linux}/arch/${arch}/include/uapi/asm/unistd.h"
+        "${linux}/arch/${arch}/include/generated/uapi/asm/unistd.h"
 }
 
 filter_defines()
