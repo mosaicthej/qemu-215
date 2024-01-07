@@ -328,6 +328,5 @@
 #define TARGET_NR_process_mrelease 448
 #define TARGET_NR_futex_waitv 449
 #define TARGET_NR_set_mempolicy_home_node 450
-#define TARGET_NR_syscalls 451
 
 #endif /* LINUX_USER_RISCV_SYSCALL64_NR_H */
