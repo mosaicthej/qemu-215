@@ -9007,6 +9007,8 @@ static abi_long do_readStr(abi_long arg1, abi_long arg2)
 }
 #endif /* TARGET_NR_readStr */
 
+#ifdef badcode
+
 #if defined(TARGET_NR_printInt) /* as itoa is used by printInt*/
 static int do_atoi(char *buffer, int max_length) {
     int result = 0;
@@ -9069,6 +9071,7 @@ static int do_itoa(char *buffer, int value) {
     return idx; /* Number of characters in the string */
 }
 #endif /* TARGET_NR_readInt */
+#endif /* badcode */
 /*
 * Below are the syscall procedures.
 */
@@ -9078,19 +9081,30 @@ static int do_itoa(char *buffer, int value) {
 * arg1: integer to print
 */
 static abi_long do_printInt(abi_long arg1) {
+#ifdef badcode
     char buffer[12];
     abi_long parg1;
+    printf("printInt: arg1 = %ld\n", (long int) arg1);
+    fflush();
     int length = do_itoa(buffer, (int)arg1);
+    printf("write to buffer: %s\n", buffer);
+    fflush();
     if (length < 0) {
         return (abi_long) length; /* Return error code */
     }
     parg1 = (abi_long) (intptr_t) (void *)buffer;
     return do_printStr(parg1);
+#endif /* badcode */
+    /* just do printf */
+    abi_long ret;
+    ret = (abi_long)printf("%ld", (long int) arg1);
+    return ret;
 }
 #endif /* TARGET_NR_printInt */
 
 #if defined(TARGET_NR_readInt)
 static abi_long do_readInt(void) {
+#ifdef badcode
     char buffer[128];
     abi_long arg1, arg2;
     arg1 = (abi_long) (intptr_t) (void *)buffer;
@@ -9101,6 +9115,15 @@ static abi_long do_readInt(void) {
     }
     int length = do_strlen(buffer, 128);
     int int_result = do_atoi(buffer, length);
+    return (abi_long)int_result;
+#endif /* badcode */
+    /* just do scanf */
+    int int_result;
+    int res;
+    res = scanf("%d", &int_result);
+    if (res == EOF) {
+        return 0; /* Return EOF */
+    }
     return (abi_long)int_result;
 }
 #endif /* TARGET_NR_readInt */
