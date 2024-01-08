@@ -9019,7 +9019,7 @@ static abi_long do_printChar(abi_long arg1)
 #endif /* TARGET_NR_printChar */
 
 #if defined(TARGET_NR_readChar)
-static abi_long do_readChar()
+static abi_long do_readChar(void)
 {
     char ch;
     abi_long ret = get_errno(safe_read(0, &ch, 1));
@@ -13735,7 +13735,7 @@ static abi_long do_syscall1(CPUArchState *cpu_env, int num, abi_long arg1,
 #endif
 
 #if defined(TARGET_NR_printChar)
-    case TARGET_NR_printChat:
+    case TARGET_NR_printChar:
         return do_printChar(arg1);
 #endif
 
