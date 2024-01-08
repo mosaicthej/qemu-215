@@ -9007,6 +9007,104 @@ static abi_long do_readStr(abi_long arg1, abi_long arg2)
 }
 #endif /* TARGET_NR_readStr */
 
+#if defined(TARGET_NR_printInt) /* as itoa is used by printInt*/
+static int do_atoi(char *buffer, int max_length) {
+    int result = 0;
+    int sign = 1;
+    int idx = 0;
+    int is_first_char = 1;
+
+    while (idx < max_length && buffer[idx] != '\n' && buffer[idx] != '\0') {
+        if (buffer[idx] == '-' && is_first_char) {
+            sign = -1;
+        } else if (buffer[idx] >= '0' && buffer[idx] <= '9') {
+            result = result * 10 + (buffer[idx] - '0');
+            is_first_char = 0;
+        }
+        idx++;
+        /* note, this skips the non-numeric chars and keep reading */
+    }
+    return result * sign;
+}
+#endif /* TARGET_NR_printInt */
+
+#if defined(TARGET_NR_readInt) /* as strlen and atoi is used by readInt*/
+static int do_strlen(char *buffer, int max_length) {
+    int length = 0;
+    while (length < max_length && buffer[length] != '\0') {
+        length++;
+    }
+    return length;
+}
+
+static int do_itoa(char *buffer, int value) {
+    int idx = 0;
+    int is_negative = 0;
+
+    if (value < 0) {
+        is_negative = 1;
+        value = -value;
+        buffer[idx++] = '-';
+    }
+
+    int start_idx = idx;
+    do {
+        buffer[idx++] = (value % 10) + '0';
+        value /= 10;
+    } while (value);
+
+    buffer[idx] = '\0'; /* Append null terminator */
+
+    /* Reverse the string if positive */
+    if (!is_negative) {
+        int end_idx = idx - 1;
+        while (start_idx < end_idx) {
+            char temp = buffer[start_idx];
+            buffer[start_idx] = buffer[end_idx];
+            buffer[end_idx] = temp;
+            start_idx++;
+            end_idx--;
+        }
+    }
+    return idx; /* Number of characters in the string */
+}
+#endif /* TARGET_NR_readInt */
+/*
+* Below are the syscall procedures.
+*/
+
+#if defined(TARGET_NR_printInt)
+/*
+* arg1: integer to print
+*/
+static abi_long do_printInt(abi_long arg1) {
+    char buffer[12];
+    abi_long parg1;
+    int length = do_itoa(buffer, (int)arg1);
+    if (length < 0) {
+        return (abi_long) length; /* Return error code */
+    }
+    parg1 = (abi_long) (intptr_t) (void *)buffer;
+    return do_printStr(parg1);
+}
+#endif /* TARGET_NR_printInt */
+
+#if defined(TARGET_NR_readInt)
+static abi_long do_readInt(void) {
+    char buffer[128];
+    abi_long arg1, arg2;
+    arg1 = (abi_long) (intptr_t) (void *)buffer;
+    arg2 = 128;
+    abi_long read_ret = do_readStr(arg1, arg2);
+    if (read_ret < 0) {
+        return read_ret; /* Return error code */
+    }
+    int length = do_strlen(buffer, 128);
+    int int_result = do_atoi(buffer, length);
+    return (abi_long)int_result;
+}
+#endif /* TARGET_NR_readInt */
+
 #if defined(TARGET_NR_printChar)
 /*
 * arg1: character to print
