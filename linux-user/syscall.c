@@ -8947,81 +8947,13 @@ static abi_long do_riscv_hwprobe(CPUArchState *cpu_env, abi_long arg1,
 * Modified 2024-01-06
 * Mark Jia <mij623@usask.ca>
 */
-#if defined(TARGET_NR_printInt)
+
 /*
-* arg1: integer to print
+* need some helpers: do_strlen, do_atoi, do_itoa
+* dependency: 
+*   printInt <- do_itoa, do_printStr
+*   readInt <- do_atoi, do_strlen, do_readStr
 */
-static abi_long do_printInt(abi_long arg1)
-{
-#ifdef BAD_CODE
-    abi_long ret;
-    char int_buffer[12]; /* Buffer for integer conversion */
-    int int_length = 0;  /* Length of the converted integer */
-    int num_to_print = (int)arg1;
-    int is_negative = num_to_print < 0 ? 1 : 0;
-
-    /* Convert the integer to a string */
-    if (is_negative) {
-        num_to_print = -num_to_print;
-        int_buffer[int_length++] = '-';
-    }
-    do {
-        int_buffer[int_length++] = (num_to_print % 10) + '0';
-        num_to_print /= 10;
-    } while (num_to_print && int_length < sizeof(int_buffer)-1);
-    int_buffer[int_length] = '\0';
-
-    /* reverse the buffer */
-    for (int i = 0; i < int_length / 2; i++) {
-        char tmp = int_buffer[i];
-        int_buffer[i] = int_buffer[int_length - i - 1];
-        int_buffer[int_length - i - 1] = tmp;
-    }
-    
-    /* write the string to STDOUT */
-    ret = get_errno(safe_write(1, int_buffer, int_length));
-    return ret;
-#endif
-    abi_long ret;
-    ret = get_errno(printf("%d", (int)arg1));
-    
-}
-#endif /* TARGET_NR_printInt */
-
-#if defined(TARGET_NR_readInt)
-static abi_long do_readInt()
-{   
-#ifdef BAD_CODE
-    abi_long ret;
-    char read_int_buffer[12];
-    int read_len = get_errno(safe_read(0, read_int_buffer, sizeof(read_int_buffer) - 1)); // Read up to 11 chars
-    if (read_len <= 0) {
-        ret = read_len; /* Return error code or 0 if no data read */
-        return ret;
-    }
-    read_int_buffer[read_len] = '\0'; /* Null-terminate the string */
-    /* Convert string to integer */
-    int result = 0, sign = 1, index = 0;
-    if (read_int_buffer[0] == '-') { /* Handle negative numbers */
-        sign = -1;
-        index = 1;
-    }
-    for (; index < read_len; index++) {
-        if (read_int_buffer[index] < '0' || read_int_buffer[index] > '9') {
-            ret = -1; /* Invalid integer character */
-            return ret;
-        }
-        result = result * 10 + (read_int_buffer[index] - '0');
-    }
-    ret = sign * result;
-    return ret;
-#endif
-    int ret;
-    scanf("%d", &ret);
-    return (abi_long)ret;
-}
-#endif /* TARGET_NR_readInt */
-
 #if defined(TARGET_NR_printStr)
 /*
 * arg1: pointer to string to print
