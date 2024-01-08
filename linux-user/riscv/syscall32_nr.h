@@ -234,12 +234,12 @@
  * Modified 2024-01-06
  * Mark Jia <mij623@usask.ca>
  */
-#define TARGET_NR_printInt (__NR_arch_specific_syscall)
-#define TARGET_NR_readInt (__NR_arch_specific_syscall + 1)
-#define TARGET_NR_printChar (__NR_arch_specific_syscall + 2)
-#define TARGET_NR_readChar (__NR_arch_specific_syscall + 3)
-#define TARGET_NR_printStr (__NR_arch_specific_syscall + 4) 
-#define TARGET_NR_readStr (__NR_arch_specific_syscall + 5) 
+#define TARGET_NR_printInt (TARGET_NR_arch_specific_syscall)
+#define TARGET_NR_readInt (TARGET_NR_arch_specific_syscall + 1)
+#define TARGET_NR_printChar (TARGET_NR_arch_specific_syscall + 2)
+#define TARGET_NR_readChar (TARGET_NR_arch_specific_syscall + 3)
+#define TARGET_NR_printStr (TARGET_NR_arch_specific_syscall + 4) 
+#define TARGET_NR_readStr (TARGET_NR_arch_specific_syscall + 5) 
 /*
  * done, so used 244-249
  * */
