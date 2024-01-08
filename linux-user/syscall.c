@@ -9098,6 +9098,7 @@ static abi_long do_printInt(abi_long arg1) {
     /* just do printf */
     abi_long ret;
     ret = (abi_long)printf("%ld", (long int) arg1);
+    fflush(stdout);
     return ret;
 }
 #endif /* TARGET_NR_printInt */
