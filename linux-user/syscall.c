@@ -9266,7 +9266,8 @@ static abi_long do_readStr(abi_long arg1, abi_long arg2)
     abi_long max_length = arg2;
 
     if (!(p = lock_user(VERIFY_WRITE, arg1, max_length, 0))) {
-        printf("[KERNEL_MSG]: failed to lock user space.\n");
+        fprintf(stderr, "[KERNEL_MSG]: failed to lock user space.\n");
+        fflush(stderr);
         return -TARGET_EFAULT;
     }
 
@@ -9283,7 +9284,10 @@ static abi_long do_readStr(abi_long arg1, abi_long arg2)
 
     int countDestroy;
     if ((countDestroy=clearSTDIN()))
-        printf("[KERNEL_MSG]: %d bytes discarded from STDIN buffer.\n", countDestroy);
+        fprintf(stderr, "[KERNEL_MSG]: %d bytes discarded from STDIN buffer.\n",
+                countDestroy), 
+        fflush(stderr);
+    
 
 
     unlock_user(p, arg1, ret);
@@ -9438,9 +9442,10 @@ static abi_long do_readChar(void)
 
     int countDestroy;
     if ((countDestroy=clearSTDIN()))
-        printf("[KERNEL_MSG]: %d bytes discarded from STDIN buffer.\n", countDestroy);
-
-    if (ret > 0) {
+        fprintf(stderr, "[KERNEL_MSG]: %d bytes discarded from STDIN buffer.\n",
+                countDestroy), 
+        fflush(stderr);
+        if (ret > 0) {
         return (unsigned char)ch;
     } else {
         return ret; /* Return error code or 0 (EOF) */
