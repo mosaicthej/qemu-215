@@ -8984,7 +8984,7 @@ static abi_long do_printStr(abi_long arg1) {
  * My lazy ass....
  * */
 #if defined(TARGET_NR_readStr) || defined(TARGET_NR_readChar)
-static void clearSTDIN(){
+static int clearSTDIN(){
     /* There could (MAY or MAY NOT) be some more bytes left in STDIN. 
      *   as a result of `readStr` or `readChar`
      *
@@ -9004,11 +9004,8 @@ static void clearSTDIN(){
     while ((bytesRead = get_errno(safe_read(0, buf, blklen - 1))) 
         && (countDestroy += bytesRead));
 
-    if (countDestroy)
-        printf("[KERNEL_MSG]: %d bytes discarded from STDIN buffer.\n", countDestroy);
-
+    return countDestroy;
     #undef blklen
-    return;
 }
 #endif
 
@@ -9041,6 +9038,11 @@ static abi_long do_readStr(abi_long arg1, abi_long arg2)
         /* Handle EOF */
         p[0] = '\0';
     }
+
+    int countDestroy;
+
+    if (countDestroy=clearSTDIN())
+        printf("[KERNEL_MSG]: %d bytes discarded from STDIN buffer.\n", countDestroy);
 
 
     unlock_user(p, arg1, ret);
@@ -9182,10 +9184,19 @@ static abi_long do_printChar(abi_long arg1)
 #endif /* TARGET_NR_printChar */
 
 #if defined(TARGET_NR_readChar)
+/*
+ * read 1 byte.
+ * Destroys everything else in STDIN buffer.
+ *
+ * will print a warning message if anything got destroyed in STDIN.
+ * */
 static abi_long do_readChar(void)
 {
     char ch;
     abi_long ret = get_errno(safe_read(0, &ch, 1));
+
+
+    
 
     if (ret > 0) {
         return (unsigned char)ch;
@@ -9194,6 +9205,7 @@ static abi_long do_readChar(void)
     }
 }
 #endif /* TARGET_NR_readChar */
+
 
 #if defined(TARGET_NR_pivot_root) && defined(__NR_pivot_root)
 _syscall2(int, pivot_root, const char *, new_root, const char *, put_old)
