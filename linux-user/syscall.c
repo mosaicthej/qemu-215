@@ -9243,8 +9243,12 @@ static int clearSTDIN(void){
      * but using && is even better since the shortcircuit would skip 1 no-op
      */
 
-    while ((bytesRead = get_errno(safe_read(0, buf, blklen - 1))) 
-        && (countDestroy += bytesRead));
+    while (
+           (bytesRead = get_errno(safe_read(0, buf, blklen - 1))) 
+        && (countDestroy += bytesRead)
+        && (memchr(buf, '\n', bytesRead)==NULL)
+        ); /*to stop after got the first '\n'*/
+
 
     return countDestroy;
     #undef blklen
