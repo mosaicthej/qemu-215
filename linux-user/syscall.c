@@ -9230,6 +9230,7 @@ static abi_long do_readStr(abi_long arg1, abi_long arg2)
     abi_long max_length = arg2;
 
     if (!(p = lock_user(VERIFY_WRITE, arg1, max_length, 0))) {
+        printf("[KERNEL_MSG]: failed to lock user space.\n");
         return -TARGET_EFAULT;
     }
 
