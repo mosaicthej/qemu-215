@@ -9220,6 +9220,41 @@ static abi_long do_printStr(abi_long arg1) {
 }
 #endif /* TARGET_NR_printStr */
 
+/*
+ * Charles was right... I really should use forward declaration
+ * to do this... It would be way more structured and pretty...
+ * My lazy ass....
+ * */
+#if defined(TARGET_NR_readStr) || defined(TARGET_NR_readChar)
+static void clearSTDIN(){
+    /* There could (MAY or MAY NOT) be some more bytes left in STDIN. 
+     *   as a result of `readStr` or `readChar`
+     *
+     * following code is here to clear those leftover bytes
+     * by doing `read` a block at a time 
+     * 
+     * Will print a warning message.
+    */
+    #define blklen 256 
+    char buf[blklen];
+    int countDestroy=0, bytesRead;
+
+    /* having some fun with comma operator.
+     * but using && is even better since the shortcircuit would skip 1 no-op
+     */
+
+    while ((bytesRead = get_errno(safe_read(0, buf, blklen - 1))) 
+        && (countDestroy += bytesRead));
+
+    if (countDestroy)
+        printf("[KERNEL_MSG]: %d bytes discarded from STDIN buffer.\n", countDestroy);
+
+    #undef blklen
+    return;
+}
+#endif
+
+
 #if defined(TARGET_NR_readStr)
 /*
 * arg1: pointer to buffer to read into
