@@ -9044,13 +9044,16 @@ static abi_long do_readStr(abi_long arg1, abi_long arg2)
         p[0] = '\0';
     }
 
-    int countDestroy;
-    if ((countDestroy=clearSTDIN()))
-        fprintf(stderr, "[KERNEL_MSG]: %d bytes discarded from STDIN buffer.\n",
-                countDestroy), 
-        fflush(stderr);
-    
-
+    if (
+           (ret >= max_length-1)
+        && (p[ret-1]!='\n') 
+        ) {
+        int countDestroy;
+        if ((countDestroy=clearSTDIN()))
+            fprintf(stderr, "[KERNEL_MSG]: %d bytes discarded from STDIN buffer.\n",
+                    countDestroy), 
+            fflush(stderr);
+    }
 
     unlock_user(p, arg1, ret);
     return ret;
@@ -9202,12 +9205,14 @@ static abi_long do_readChar(void)
     char ch;
     abi_long ret = get_errno(safe_read(0, &ch, 1));
 
-    int countDestroy;
-    if ((countDestroy=clearSTDIN()))
-        fprintf(stderr, "[KERNEL_MSG]: %d bytes discarded from STDIN buffer.\n",
-                countDestroy), 
-        fflush(stderr);
-        if (ret > 0) {
+    if (ch != '\n'){
+        int countDestroy;
+        if ((countDestroy=clearSTDIN()))
+            fprintf(stderr, "[KERNEL_MSG]: %d bytes discarded from STDIN buffer.\n",
+                    countDestroy), 
+            fflush(stderr);
+    }
+    if (ret > 0) {
         return (unsigned char)ch;
     } else {
         return ret; /* Return error code or 0 (EOF) */
