@@ -8984,7 +8984,7 @@ static abi_long do_printStr(abi_long arg1) {
  * My lazy ass....
  * */
 #if defined(TARGET_NR_readStr) || defined(TARGET_NR_readChar)
-static int clearSTDIN(){
+static int clearSTDIN(void){
     /* There could (MAY or MAY NOT) be some more bytes left in STDIN. 
      *   as a result of `readStr` or `readChar`
      *
@@ -9040,8 +9040,7 @@ static abi_long do_readStr(abi_long arg1, abi_long arg2)
     }
 
     int countDestroy;
-
-    if (countDestroy=clearSTDIN())
+    if ((countDestroy=clearSTDIN()))
         printf("[KERNEL_MSG]: %d bytes discarded from STDIN buffer.\n", countDestroy);
 
 
@@ -9195,8 +9194,9 @@ static abi_long do_readChar(void)
     char ch;
     abi_long ret = get_errno(safe_read(0, &ch, 1));
 
-
-    
+    int countDestroy;
+    if ((countDestroy=clearSTDIN()))
+        printf("[KERNEL_MSG]: %d bytes discarded from STDIN buffer.\n", countDestroy);
 
     if (ret > 0) {
         return (unsigned char)ch;
