@@ -9284,28 +9284,6 @@ static abi_long do_readStr(abi_long arg1, abi_long arg2)
         p[0] = '\0';
     }
 
-    /* There could (MAY or MAY NOT) be some more bytes left in STDIN. 
-     *
-     * following code is here to clear those leftover bytes
-     * by doing `read` a block at a time 
-     * 
-     * Will print a warning message.
-    */
-    #define blklen 256 
-    char buf[blklen];
-    int countDestroy=0, bytesRead;
-
-    /* having some fun with comma operator.
-     * but using && is even better since the shortcircuit would skip 1 no-op
-     */
-
-    while ((bytesRead = get_errno(safe_read(0, buf, blklen - 1))) 
-        && (countDestroy += bytesRead));
-
-    if (countDestroy)
-        printf("[KERNEL_MSG]: %d bytes discarded from STDIN buffer.\n", countDestroy);
-
-    #undef blklen
 
     unlock_user(p, arg1, ret);
     return ret;
