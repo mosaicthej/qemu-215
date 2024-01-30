@@ -9253,6 +9253,28 @@ static int clearSTDIN(void){
     return countDestroy;
     #undef blklen
 }
+
+static int clearFileLine(void) {
+    /*
+     * clearSTDIN works great when dealing with manual input from tty.
+     * but in case when using `<` to have regular file as input, it is broken
+     * in the way that it consumes all of the buffer.
+     *
+     * So if isatty() returns false, use this one to clean up.
+     * In a way that, only clears up to the 
+     * */
+
+    int ch;
+    int countDestroy=0;
+
+    while (
+            (ch=getchar())!=EOF
+          &&(++countDestroy, ch!='\n')  
+          );
+
+    return countDestroy;
+}
+
 #endif
 
 
