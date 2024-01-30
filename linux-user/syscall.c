@@ -9290,6 +9290,16 @@ static abi_long do_readStr(abi_long arg1, abi_long arg2)
 {
     char *p;
     abi_long max_length = arg2;
+    
+    isatty(fileno(stdin))?
+        :fprintf(stderr, "[KERNEL_MSG]: warning! the inut is not from stdin\n");
+
+    if (max_length < 1){
+        fprintf(stderr, "[KERNEL_ERR]: invalid argument length %ld\n",
+                (long int) max_length);
+        fflush(stderr);
+        return -TARGET_EFAULT;
+    }
 
     if (!(p = lock_user(VERIFY_WRITE, arg1, max_length, 0))) {
         fprintf(stderr, "[KERNEL_MSG]: failed to lock user space.\n");
@@ -9313,7 +9323,9 @@ static abi_long do_readStr(abi_long arg1, abi_long arg2)
         && (p[ret-1]!='\n') 
         ) {
         int countDestroy;
-        if ((countDestroy=clearSTDIN()))
+        int (*clearInput)(void);
+        clearInput=isatty(fileno(stdin)) ? clearSTDIN : clearFileLine;
+        if ((countDestroy=clearInput()))
             fprintf(stderr, "[KERNEL_MSG]: %d bytes discarded from STDIN buffer.\n",
                     countDestroy), 
             fflush(stderr);
@@ -9471,7 +9483,9 @@ static abi_long do_readChar(void)
 
     if (ch != '\n'){
         int countDestroy;
-        if ((countDestroy=clearSTDIN()))
+        int (*clearInput)(void);
+        clearInput=isatty(fileno(stdin)) ? clearSTDIN : clearFileLine;
+        if ((countDestroy=clearInput()))
             fprintf(stderr, "[KERNEL_MSG]: %d bytes discarded from STDIN buffer.\n",
                     countDestroy), 
             fflush(stderr);
