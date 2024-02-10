@@ -9255,6 +9255,30 @@ static abi_long do_readChar(void)
     }
     #endif /* enable_clearInput*/
 
+    /*
+     * The problem is really just with `readChar` leaves 1 '\n' in the buffer
+     * so the next read action will take whatever....
+     *
+     * A more feasible and consistent solution would be to take the next byte as well,
+     * if there is next byte.
+     *
+     * Two ways to look at:
+     *  - Simple getchar() and ungetc()
+     *    This could be potentially broken since getchar() is blocking
+     *
+     *  - Using select() to set timeout when nothing else....
+     * */
+#ifdef enable_nonBlocking_inp
+    nonBlocking_escapeNL();
+    /* 
+     * TODO: implement nonBlocking_escapeNL
+     * */
+#else
+    int ch2;
+    ch2 = getchar();
+    if ((ch2=getchar()) != '\n')
+        ungetc(ch2, stdin);
+#endif
     if (ret > 0) {
         return (unsigned char)ch;
     } else {
