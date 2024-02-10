@@ -9510,6 +9510,7 @@ static abi_long do_readChar(void)
      *
      *  - Using select() to set timeout when nothing else....
      * */
+#undef enable_nonBlocking_inp /* disable before actually implemented */
 #ifdef enable_nonBlocking_inp
     nonBlocking_escapeNL();
     /* 
