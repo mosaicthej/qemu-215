@@ -9225,7 +9225,8 @@ static abi_long do_printStr(abi_long arg1) {
  * to do this... It would be way more structured and pretty...
  * My lazy ass....
  * */
-#if defined(TARGET_NR_readStr) || defined(TARGET_NR_readChar)
+#undef enable_clearInput /* Disable those two for now*/
+#if defined(enable_clearInput)
 static int clearSTDIN(void){
     /* There could (MAY or MAY NOT) be some more bytes left in STDIN. 
      *   as a result of `readStr` or `readChar`
@@ -9317,7 +9318,8 @@ static abi_long do_readStr(abi_long arg1, abi_long arg2)
         /* Handle EOF */
         p[0] = '\0';
     }
-
+    #undef enable_clearInput
+    #if defined(enable_clearInput) /*do not use this*/
     if (
            (ret >= max_length-1)
         && (p[ret-1]!='\n') 
@@ -9330,6 +9332,7 @@ static abi_long do_readStr(abi_long arg1, abi_long arg2)
                     countDestroy), 
             fflush(stderr);
     }
+    #endif /* enable_clearInput */
 
     unlock_user(p, arg1, ret);
     return ret;
@@ -9481,6 +9484,8 @@ static abi_long do_readChar(void)
     char ch;
     abi_long ret = get_errno(safe_read(0, &ch, 1));
 
+    #undef enable_clearInput
+    #ifdef enable_clearInput /* Do not do this */
     if (ch != '\n'){
         int countDestroy;
         int (*clearInput)(void);
@@ -9490,6 +9495,8 @@ static abi_long do_readChar(void)
                     countDestroy), 
             fflush(stderr);
     }
+    #endif /* enable_clearInput*/
+
     if (ret > 0) {
         return (unsigned char)ch;
     } else {
