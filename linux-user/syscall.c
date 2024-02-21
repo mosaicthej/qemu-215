@@ -9275,10 +9275,19 @@ static abi_long do_readChar(void)
      * TODO: implement nonBlocking_escapeNL
      * */
 #else
-    int ch2;
-    ch2 = getchar();
-    if ((ch2=getchar()) != '\n')
+    char ch2;
+
+    if ((ch2=getchar()) != '\n'){
+        char wrn_more_buffer[160];
+        sprintf( &wrn_more_buffer[0],
+            "[KERNEL_MSG] more than single char present "
+                "in stdin after call `readChar`.\n"
+            "[KERNEL_MSG] everything including and after '%c' (%d)"
+                "will remain in stdin\n", ch2, ch2);
+        fprintf(stderr, "%s", wrn_more_buffer);
+        fflush(stderr);
         ungetc(ch2, stdin);
+    }
 #endif
     if (ret > 0) {
         return (unsigned char)ch;
