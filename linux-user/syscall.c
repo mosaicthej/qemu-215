@@ -9310,12 +9310,18 @@ static abi_long do_readStr(abi_long arg1, abi_long arg2)
 
     /* Perform the read operation from STDIN */
     abi_long ret = get_errno(safe_read(0, p, max_length - 1)); 
-    
+    if (ret == 0){
+        perror("[KERNEL_MSG]: unexpected EOF!");
+        fflush(stderr);
+    } else if(ret==-1){
+        perror("[KERNEL_MSG]: readStr failed!");
+        fflush(stderr);
+    }
 
     if (ret > 0) {
         p[ret] = '\0'; /* Null-terminate the string */
-    } else if (ret == 0) {
-        /* Handle EOF */
+    } else if {
+        /* Handle EOF and other bad things*/
         p[0] = '\0';
     }
     #undef enable_clearInput
