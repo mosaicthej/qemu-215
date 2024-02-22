@@ -9485,26 +9485,21 @@ static abi_long do_printChar(abi_long arg1)
  * leftover in the buffer.
  * * */
 static abi_long safe_read1chr(FILE* stream) {
-    unsigned char c1; int bytesRead;
-    
-    bytesRead = safe_read(fileno(stream), &c1, 1);
-    if (bytesRead == 0){
-        perror("[KERNEL_MSG]: unexpected EOF! ");
+    unsigned int c1;
+    c1 = getc(stream);
+    if (c1 == EOF){
+        perror("[KERNEL_MSG]: getc error!\n"
+                "\thave you unintentationally pass EOF?");
         fflush(stderr);
-        return 0;
-    } else if (bytesRead== -1){
-        perror("[KERNEL_ERR]: read1chr failed! ");
-        fflush(stderr);
+        clearerr(stream);
+        /*
+         * This enables future invocations.
+         * see `clearerr` info page.
+         * */
         return -1;
-    } else if (bytesRead != 1){
-        perror("[KERNEL_MSG]: something else is wrong...");
-        fprintf(stderr,"\t check the return val...\n"
-                "\treturn val is number of bytesRead.\n"
-                "\texpecting 1 here but it's not 1...\n");
-        fflush(stderr);
-        return -1;
-    } /* otherwise, good */
+    }
     return (abi_long) c1;
+
 }
 
 static abi_long do_readChar(void)
