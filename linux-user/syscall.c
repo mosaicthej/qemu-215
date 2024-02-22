@@ -9291,7 +9291,7 @@ static abi_long do_readChar(void)
      * else put it back (with a warning).
      * */
     c2 = safe_read1chr(stdin);
-    if (c2!='\n' && c2!=-1) {/* buffer has somehting else*/
+    if (c2!='\n' && c2!=-1 && c2!=0) {/* buffer has somehting else*/
         c2 = ungetc(c2, stdin);
         fprintf(stderr,
                 "\n[KERNEL_MSG]: You have something else in the buffer!\n"
