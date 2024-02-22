@@ -9490,7 +9490,7 @@ static abi_long safe_read1chr(FILE* stream) {
         perror("[KERNEL_ERR]: read1chr failed! ");
         fflush(stderr);
         return -1;
-    } else if (bytesRead != -1){
+    } else if (bytesRead != 1){
         perror("[KERNEL_MSG]: something else is wrong...");
         fprintf(stderr,"\t check the return val...\n"
                 "\treturn val is number of bytesRead.\n"
@@ -9498,7 +9498,7 @@ static abi_long safe_read1chr(FILE* stream) {
         fflush(stderr);
         return -1;
     } /* otherwise, good */
-    return abi_long c1;
+    return (abi_long) c1;
 }
 
 static abi_long do_readChar(void)
