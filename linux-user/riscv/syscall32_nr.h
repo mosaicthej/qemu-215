@@ -244,6 +244,16 @@
  * done, so used 244-249
  * */
 
+/*
+ * Modification 2024-02-22
+ * Adding supports for readFloat, printFloat
+ * 64 bit (softemu) IO should be same call number
+ * with additional flags been set
+ * */
+#define TARGET_NR_printFloat (TARGET_NR_arch_specific_syscall + 6) /* __250__ */
+#define TARGET_NR_readFloat (TARGET_NR_arch_specific_syscall + 7) /* __251__ */
+
+
 #define TARGET_NR_prlimit64 261
 #define TARGET_NR_fanotify_init 262
 #define TARGET_NR_fanotify_mark 263

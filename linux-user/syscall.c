@@ -9318,6 +9318,30 @@ static abi_long do_readChar(void)
 }
 #endif /* TARGET_NR_readChar */
 
+/* Modification 2024-02-22
+ * Support for floating point I/O
+ * Behaviours should be similar to integer complements
+ * readFloat, printFloat,
+ *
+ * readDouble, printDouble 
+ * can be added as a flag to same call
+ * */
+#if defined(TARGET_NR_printFloat)
+/* @args: arg1 -
+ *  an integer register that is representing
+ *  the float point bit pattern
+ * inspired by:
+ * https://github.com/id-Software/Quake-III-Arena/blob/master/code/game/q_math.c#L552
+ */
+static abi_long do_printFloat(abi_long arg1)
+{
+    float x;
+    x = * (float *) (long *) &arg1;
+    abi_long ret = (abi_long) printf("%f",x);
+    fflush(stdout);
+    return ret;    
+}
+#endif
 
 #if defined(TARGET_NR_pivot_root) && defined(__NR_pivot_root)
 _syscall2(int, pivot_root, const char *, new_root, const char *, put_old)
@@ -14029,6 +14053,22 @@ static abi_long do_syscall1(CPUArchState *cpu_env, int num, abi_long arg1,
 #if defined(TARGET_NR_readChar)
     case TARGET_NR_readChar:
         return do_readChar();
+#endif
+
+/*
+ * Modification 2024-02-22
+ * Note that those might be architecture-dependent,
+ * I'm not too sure. But may need to add logic to handle
+ * 32 and 64 bit differently
+ * */
+#if defined(TARGET_NR_printFloat)
+    case TARGET_NR_printFloat:
+        return do_printFloat();
+#endif
+
+#if defined(TARGET_NR_readFloat)
+    case TARGET_NR_readFloat:
+        return do_readFloat();
 #endif
 
     default:
