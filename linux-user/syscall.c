@@ -9078,7 +9078,7 @@ static abi_long do_readStr(abi_long arg1, abi_long arg2)
 
     if (ret > 0) {
         p[ret] = '\0'; /* Null-terminate the string */
-    } else if {
+    } else{
         /* Handle EOF and other bad things*/
         p[0] = '\0';
     }
