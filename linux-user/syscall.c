@@ -9475,67 +9475,61 @@ static abi_long do_printChar(abi_long arg1)
 #if defined(TARGET_NR_readChar)
 /*
  * read 1 byte.
- * Destroys everything else in STDIN buffer.
- *
- * will print a warning message if anything got destroyed in STDIN.
- * */
+ * will print a warning message (to stdout) if anything 
+ * leftover in the buffer.
+ * * */
+static abi_long safe_getc(FILE* stream) {
+    abi_long c1;
+    if((c1 = getc(stream)) == EOF){/* not use get_errno() here,
+        since getc reflect the error on return val not errno
+        see getc(3) */
+        fprintf(stderr,
+                "[KERNEL_ERR]: readChar failed on getc(stdin)!\n"
+                "Did you entered EOF??\n");
+        return -1;
+    }
+    return c1;
+}
+
 static abi_long do_readChar(void)
 {
-    char ch;
-    abi_long ret = get_errno(safe_read(0, &ch, 1));
+    /* bruh this is such a simple fix im so dumb 
+     * just do two getchar if 1st is not nl.
+     * if 2nd is not NL, put it back to buffer.
+     * */
 
-    #undef enable_clearInput
-    #ifdef enable_clearInput /* Do not do this */
-    if (ch != '\n'){
-        int countDestroy;
-        int (*clearInput)(void);
-        clearInput=isatty(fileno(stdin)) ? clearSTDIN : clearFileLine;
-        if ((countDestroy=clearInput()))
-            fprintf(stderr, "[KERNEL_MSG]: %d bytes discarded from STDIN buffer.\n",
-                    countDestroy), 
-            fflush(stderr);
-    }
-    #endif /* enable_clearInput*/
+    abi_long c1, c2;
+    c1 = safe_getc(stdin); /* -1 means bad, 
+                         safe_getc() should already printed error */
 
     /*
-     * The problem is really just with `readChar` leaves 1 '\n' in the buffer
-     * so the next read action will take whatever....
+     * Usually, a NL would remain in buffer 
+     * (assume user pressed enter)
+     * an exception would be when user enters \n
+     * and it's the only thing. Or when user enters
+     * EOF.
+     * That means the user really wants \n
+     * lets just return it.
      *
-     * A more feasible and consistent solution would be to take the next byte as well,
-     * if there is next byte.
-     *
-     * Two ways to look at:
-     *  - Simple getchar() and ungetc()
-     *    This could be potentially broken since getchar() is blocking
-     *
-     *  - Using select() to set timeout when nothing else....
-     * */
-#undef enable_nonBlocking_inp /* disable before actually implemented */
-#ifdef enable_nonBlocking_inp
-    nonBlocking_escapeNL();
-    /* 
-     * TODO: implement nonBlocking_escapeNL
-     * */
-#else
-    char ch2;
+     * Note this will return -1 on EOF */
 
-    if ((ch2=getchar()) != '\n'){
-        char wrn_more_buffer[160];
-        sprintf( &wrn_more_buffer[0],
-            "[KERNEL_MSG] more than single char present "
-                "in stdin after call `readChar`.\n"
-            "[KERNEL_MSG] everything including and after '%c' (%d)"
-                "will remain in stdin\n", ch2, ch2);
-        fprintf(stderr, "%s", wrn_more_buffer);
-        fflush(stderr);
-        ungetc(ch2, stdin);
+    if(c1=='\n' || c1==-1) return c1;
+
+    /* in case user typed a \n, just return. 
+     *
+     * otherwise, check the next char, if \n, skip,
+     * else put it back (with a warning).
+     * */
+    c2 = safe_getc(stdin);
+    if (c2!='\n' && c2!=-1) {/* buffer has somehting else*/
+        c2 = ungetc(c2, stdin);
+        fprintf(stderr,
+                "[KERNEL_MSG]: You have something else in the buffer!\n"
+                "Make sure you know what you doing...\n"
+                "everything after '%c' is put back... \n"
+                "Note buffer may have uninteded new-lines...\n", (int) c2);
     }
-#endif
-    if (ret > 0) {
-        return (unsigned char)ch;
-    } else {
-        return ret; /* Return error code or 0 (EOF) */
-    }
+    return c1;
 }
 #endif /* TARGET_NR_readChar */
 
