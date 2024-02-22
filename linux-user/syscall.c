@@ -9236,17 +9236,27 @@ static abi_long do_printChar(abi_long arg1)
  * will print a warning message (to stdout) if anything 
  * leftover in the buffer.
  * * */
-static abi_long safe_getc(FILE* stream) {
-    abi_long c1;
-    if((c1 = getc(stream)) == EOF){/* not use get_errno() here,
-        since getc reflect the error on return val not errno
-        see getc(3) */
-        fprintf(stderr,
-                "[KERNEL_ERR]: readChar failed on getc(stdin)!\n"
-                "Did you entered EOF??\n");
+static abi_long safe_read1chr(FILE* stream) {
+    unsigned char c1; int bytesRead;
+    
+    bytesRead = safe_read(fileno(stream), &c1, 1);
+    if (bytesRead == 0){
+        perror("[KERNEL_MSG]: unexpected EOF! ");
+        fflush(stderr);
+        return 0;
+    } else if (bytesRead== -1){
+        perror("[KERNEL_ERR]: read1chr failed! ");
+        fflush(stderr);
         return -1;
-    }
-    return c1;
+    } else if (bytesRead != -1){
+        perror("[KERNEL_MSG]: something else is wrong...");
+        fprintf(stderr,"\t check the return val...\n"
+                "\treturn val is number of bytesRead.\n"
+                "\texpecting 1 here but it's not 1...\n");
+        fflush(stderr);
+        return -1;
+    } /* otherwise, good */
+    return abi_long c1;
 }
 
 static abi_long do_readChar(void)
@@ -9257,8 +9267,12 @@ static abi_long do_readChar(void)
      * */
 
     abi_long c1, c2;
-    c1 = safe_getc(stdin); /* -1 means bad, 
-                         safe_getc() should already printed error */
+    c1 = safe_read1chr(stdin); /* -1 or 0 means bad, 
+    * safe_read1chr() should already printed error 
+    * will return the same error value (0 or -1) and
+    * let user deal with it.
+    */
+    if(c1=='\n'|| c1 ==0 || c1==-1) return c1;
 
     /*
      * Usually, a NL would remain in buffer 
@@ -9271,21 +9285,19 @@ static abi_long do_readChar(void)
      *
      * Note this will return -1 on EOF */
 
-    if(c1=='\n' || c1==-1) return c1;
-
     /* in case user typed a \n, just return. 
      *
      * otherwise, check the next char, if \n, skip,
      * else put it back (with a warning).
      * */
-    c2 = safe_getc(stdin);
+    c2 = safe_read1chr(stdin);
     if (c2!='\n' && c2!=-1) {/* buffer has somehting else*/
         c2 = ungetc(c2, stdin);
         fprintf(stderr,
-                "[KERNEL_MSG]: You have something else in the buffer!\n"
-                "Make sure you know what you doing...\n"
-                "everything after '%c' is put back... \n"
-                "Note buffer may have uninteded new-lines...\n", (int) c2);
+                "\n[KERNEL_MSG]: You have something else in the buffer!\n"
+                "\tMake sure you know what you doing...\n"
+                "\teverything after '%c' is put back... \n"
+                "\tNote buffer may have uninteded new-lines...\n", (int) c2);
     }
     return c1;
 }
