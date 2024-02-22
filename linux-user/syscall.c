@@ -9050,6 +9050,8 @@ static abi_long do_readStr(abi_long arg1, abi_long arg2)
     char *p;
     abi_long max_length = arg2;
     
+#undef readStr_do_sysRead
+#ifdef readStr_do_sysRead
     isatty(fileno(stdin))?
         :fprintf(stderr, "[KERNEL_MSG]: warning! the inut is not from stdin\n");
 
@@ -9100,6 +9102,18 @@ static abi_long do_readStr(abi_long arg1, abi_long arg2)
 
     unlock_user(p, arg1, ret);
     return ret;
+#else
+    if( (p=fgets((char*)(void*)(long)arg1, 
+            max_length, stdin))
+    ==NULL){
+        perror("[KERNEL_ERR]: readStr unexpected error! ");
+        fflush(stderr);
+        clearerr(stdin);
+        return -1;
+    };
+    return (abi_long) strlen(p);
+#endif
+
 }
 #endif /* TARGET_NR_readStr */
 
