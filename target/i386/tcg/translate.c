@@ -2845,6 +2845,10 @@ static void gen_jmp_rel(DisasContext *s, MemOp ot, int diff, int tb_num)
         }
     }
     new_eip &= mask;
+    new_pc = new_eip + s->cs_base;
+    if (!CODE64(s)) {
+        new_pc = (uint32_t)new_pc;
+    }
 
     gen_update_cc_op(s);
     set_cc_op(s, CC_OP_DYNAMIC);

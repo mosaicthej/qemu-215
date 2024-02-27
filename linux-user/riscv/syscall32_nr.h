@@ -229,6 +229,31 @@
 #define TARGET_NR_arch_specific_syscall 244
 #define TARGET_NR_riscv_flush_icache (TARGET_NR_arch_specific_syscall + 15)
 #define TARGET_NR_riscv_hwprobe (TARGET_NR_arch_specific_syscall + 14)
+/*
+ * New syscalls for Usask CMPT-215 classroom use (2024 Winter)
+ * Modified 2024-01-06
+ * Mark Jia <mij623@usask.ca>
+ */
+#define TARGET_NR_printInt (TARGET_NR_arch_specific_syscall)
+#define TARGET_NR_readInt (TARGET_NR_arch_specific_syscall + 1)
+#define TARGET_NR_printChar (TARGET_NR_arch_specific_syscall + 2)
+#define TARGET_NR_readChar (TARGET_NR_arch_specific_syscall + 3)
+#define TARGET_NR_printStr (TARGET_NR_arch_specific_syscall + 4) 
+#define TARGET_NR_readStr (TARGET_NR_arch_specific_syscall + 5) 
+/*
+ * done, so used 244-249
+ * */
+
+/*
+ * Modification 2024-02-22
+ * Adding supports for readFloat, printFloat
+ * 64 bit (softemu) IO should be same call number
+ * with additional flags been set
+ * */
+#define TARGET_NR_printFloat (TARGET_NR_arch_specific_syscall + 6) /* __250__ */
+#define TARGET_NR_readFloat (TARGET_NR_arch_specific_syscall + 7) /* __251__ */
+
+
 #define TARGET_NR_prlimit64 261
 #define TARGET_NR_fanotify_init 262
 #define TARGET_NR_fanotify_mark 263
@@ -300,9 +325,13 @@
 #define TARGET_NR_process_madvise 440
 #define TARGET_NR_epoll_pwait2 441
 #define TARGET_NR_mount_setattr 442
+#define TARGET_NR_quotactl_fd 443
 #define TARGET_NR_landlock_create_ruleset 444
 #define TARGET_NR_landlock_add_rule 445
 #define TARGET_NR_landlock_restrict_self 446
 #define TARGET_NR_syscalls 447
+#define TARGET_NR_process_mrelease 448
+#define TARGET_NR_futex_waitv 449
+#define TARGET_NR_set_mempolicy_home_node 450
 
 #endif /* LINUX_USER_RISCV_SYSCALL32_NR_H */
