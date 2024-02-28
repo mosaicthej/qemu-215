@@ -14063,9 +14063,10 @@ static abi_long do_syscall1(CPUArchState *cpu_env, int num, abi_long arg1,
  * */
 #if defined(TARGET_NR_printFloat)
     case TARGET_NR_printFloat:
-        return do_printFloat();
+        return do_printFloat(arg1);
 #endif
 
+#undef TARGET_NR_readFloat
 #if defined(TARGET_NR_readFloat)
     case TARGET_NR_readFloat:
         return do_readFloat();
