@@ -9341,7 +9341,7 @@ static abi_long do_printFloat(abi_long arg1, abi_long arg2, abi_long arg3)
     bool isSci =(arg2 == (abi_long) 'E');
 
     const char* fmtSt = isSci ? "%.*e" : "%.*f";
-    int len = (arg3 > 30)?30: (int) arg3;
+    int len = ((unsigned abi_long) arg3 > 30)?30: (int) arg3;
 
     abi_long ret = (abi_long) printf(fmtSt, len, x);
     fflush(stdout);
