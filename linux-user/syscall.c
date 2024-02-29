@@ -9333,11 +9333,17 @@ static abi_long do_readChar(void)
  * inspired by:
  * https://github.com/id-Software/Quake-III-Arena/blob/master/code/game/q_math.c#L552
  */
-static abi_long do_printFloat(abi_long arg1)
+static abi_long do_printFloat(abi_long arg1, abi_long arg2, abi_long arg3)
 {
     float x;
     x = * (float *) (long *) &arg1;
-    abi_long ret = (abi_long) printf("%f",x);
+    
+    bool isSci =(arg2 == (abi_long) 'E');
+
+    char* fmtSt = isSci ? "%.*e" : "%.*f";
+    int len = (arg3 > 30)?30: (int) arg3;
+
+    abi_long ret = (abi_long) printf(fmtSt, len, x);
     fflush(stdout);
     return ret;    
 }
@@ -14076,7 +14082,7 @@ static abi_long do_syscall1(CPUArchState *cpu_env, int num, abi_long arg1,
  * */
 #if defined(TARGET_NR_printFloat)
     case TARGET_NR_printFloat:
-        return do_printFloat(arg1);
+        return do_printFloat(arg1, arg2, arg3);
 #endif
 
 #if defined(TARGET_NR_readFloat)
