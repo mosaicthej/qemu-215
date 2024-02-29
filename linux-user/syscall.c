@@ -9343,6 +9343,19 @@ static abi_long do_printFloat(abi_long arg1)
 }
 #endif
 
+#if defined(TARGET_NR_printFloat)
+static abi_long do_readFloat(void)
+{
+    float x;
+    int y;
+    int ret = scanf("%f", &x);
+    if (ret==EOF) return 0; /*return EOF*/
+
+    y = *(int *)(void *)&x;
+    return (abi_long) y;
+}
+
+#endif
 #if defined(TARGET_NR_pivot_root) && defined(__NR_pivot_root)
 _syscall2(int, pivot_root, const char *, new_root, const char *, put_old)
 #endif
@@ -14066,7 +14079,6 @@ static abi_long do_syscall1(CPUArchState *cpu_env, int num, abi_long arg1,
         return do_printFloat(arg1);
 #endif
 
-#undef TARGET_NR_readFloat
 #if defined(TARGET_NR_readFloat)
     case TARGET_NR_readFloat:
         return do_readFloat();
