@@ -217,6 +217,23 @@
 #define __NR_rt_tgsigqueueinfo 240
 #define __NR_perf_event_open 241
 #define __NR_accept4 242
+
+/*
+ * new syscalls for qemu-215, (2024 winter, updated at 2025 winter)
+ * Modified 2025-01-22
+ * Mark Jia <mark.j@usask.ca>
+ */
+#define __NR_arch_specific_syscall 244
+#define __NR_printInt (__NR_arch_specific_syscall)
+#define __NR_readInt (__NR_arch_specific_syscall + 1)
+#define __NR_printChar (__NR_arch_specific_syscall + 2)
+#define __NR_readChar (__NR_arch_specific_syscall + 3)
+#define __NR_printStr (__NR_arch_specific_syscall + 4) 
+#define __NR_readStr (__NR_arch_specific_syscall + 5)
+#define __NR_printFloat (__NR_arch_specific_syscall + 6)
+#define __NR_readFloat (__NR_arch_specific_syscall + 7)
+/* done */
+
 #define __NR_riscv_hwprobe 258
 #define __NR_riscv_flush_icache 259
 #define __NR_prlimit64 261

@@ -627,6 +627,29 @@ __SC_COMP_3264(__NR_recvmmsg, sys_recvmmsg_time32, sys_recvmmsg, compat_sys_recv
  */
 #define __NR_arch_specific_syscall 244
 
+/*
+ * new syscalls for qemu-215, (2024 winter, updated at 2025 winter)
+ * Modified 2025-01-22
+ * Mark Jia <mark.j@usask.ca>
+ */
+#define __NR_printInt   (__NR_arch_specific_syscall)         /* 244 */
+__SYSCALL(__NR_printInt, sys_printInt)
+#define __NR_readInt    (__NR_arch_specific_syscall+ 1) /* 245 */
+__SYSCALL(__NR_readInt, sys_readInt) 
+#define __NR_printChar  (__NR_arch_specific_syscall+ 2) /* 246 */
+__SYSCALL(__NR_printChar, sys_printChar) 
+#define __NR_readChar   (__NR_arch_specific_syscall+ 3) /* 247 */
+__SYSCALL(__NR_readChar, sys_readChar) 
+#define __NR_printStr   (__NR_arch_specific_syscall+ 4) /* 248 */
+__SYSCALL(__NR_printStr, sys_printStr) 
+#define __NR_readStr    (__NR_arch_specific_syscall+ 5) /* 249 */
+__SYSCALL(__NR_readStr, sys_readStr) 
+#define __NR_printFloat (__NR_arch_specific_syscall+ 6) /* 250 */
+__SYSCALL(__NR_printFloat, sys_printFloat) 
+#define __NR_readFloat  (__NR_arch_specific_syscall+ 7) /* 251 */
+__SYSCALL(__NR_readFloat, sys_readFloat) 
+
+
 #if defined(__ARCH_WANT_TIME32_SYSCALLS) || __BITS_PER_LONG != 32
 #define __NR_wait4 260
 __SC_COMP(__NR_wait4, sys_wait4, compat_sys_wait4)
