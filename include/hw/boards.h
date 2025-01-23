@@ -4,8 +4,8 @@
 #define HW_BOARDS_H
 
 #include "exec/memory.h"
-#include "sysemu/hostmem.h"
-#include "sysemu/blockdev.h"
+#include "system/hostmem.h"
+#include "system/blockdev.h"
 #include "qapi/qapi-types-machine.h"
 #include "qemu/module.h"
 #include "qom/object.h"
@@ -431,6 +431,7 @@ struct MachineState {
     BootConfiguration boot_config;
     char *kernel_filename;
     char *kernel_cmdline;
+    char *shim_filename;
     char *initrd_filename;
     const char *cpu_type;
     AccelState *accelerator;
@@ -755,6 +756,9 @@ struct MachineState {
         type_register_static(&machine_initfn##_typeinfo); \
     } \
     type_init(machine_initfn##_register_types)
+
+extern GlobalProperty hw_compat_9_2[];
+extern const size_t hw_compat_9_2_len;
 
 extern GlobalProperty hw_compat_9_1[];
 extern const size_t hw_compat_9_1_len;

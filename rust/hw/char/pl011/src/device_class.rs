@@ -6,8 +6,8 @@ use core::ptr::NonNull;
 use std::os::raw::{c_int, c_void};
 
 use qemu_api::{
-    bindings::*, c_str, vmstate_clock, vmstate_fields, vmstate_int32, vmstate_subsections,
-    vmstate_uint32, vmstate_uint32_array, vmstate_unused, zeroable::Zeroable,
+    bindings::*, c_str, vmstate_clock, vmstate_fields, vmstate_subsections, vmstate_uint32,
+    vmstate_uint32_array, vmstate_unused, zeroable::Zeroable,
 };
 
 use crate::device::{PL011State, PL011_FIFO_DEPTH};
@@ -64,9 +64,9 @@ pub static VMSTATE_PL011: VMStateDescription = VMStateDescription {
         vmstate_uint32!(ibrd, PL011State),
         vmstate_uint32!(fbrd, PL011State),
         vmstate_uint32!(ifl, PL011State),
-        vmstate_int32!(read_pos, PL011State),
-        vmstate_int32!(read_count, PL011State),
-        vmstate_int32!(read_trigger, PL011State),
+        vmstate_uint32!(read_pos, PL011State),
+        vmstate_uint32!(read_count, PL011State),
+        vmstate_uint32!(read_trigger, PL011State),
     },
     subsections: vmstate_subsections! {
         VMSTATE_PL011_CLOCK
@@ -91,38 +91,4 @@ qemu_api::declare_properties! {
         bool,
         default = true
     ),
-}
-
-qemu_api::device_class_init! {
-    pl011_class_init,
-    props => PL011_PROPERTIES,
-    realize_fn => Some(pl011_realize),
-    legacy_reset_fn => Some(pl011_reset),
-    vmsd => VMSTATE_PL011,
-}
-
-/// # Safety
-///
-/// We expect the FFI user of this function to pass a valid pointer, that has
-/// the same size as [`PL011State`]. We also expect the device is
-/// readable/writeable from one thread at any time.
-pub unsafe extern "C" fn pl011_realize(dev: *mut DeviceState, _errp: *mut *mut Error) {
-    unsafe {
-        assert!(!dev.is_null());
-        let mut state = NonNull::new_unchecked(dev.cast::<PL011State>());
-        state.as_mut().realize();
-    }
-}
-
-/// # Safety
-///
-/// We expect the FFI user of this function to pass a valid pointer, that has
-/// the same size as [`PL011State`]. We also expect the device is
-/// readable/writeable from one thread at any time.
-pub unsafe extern "C" fn pl011_reset(dev: *mut DeviceState) {
-    unsafe {
-        assert!(!dev.is_null());
-        let mut state = NonNull::new_unchecked(dev.cast::<PL011State>());
-        state.as_mut().reset();
-    }
 }

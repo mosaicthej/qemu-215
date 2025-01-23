@@ -24,13 +24,9 @@
  * The exact opcode to check depends on 32- vs. 64-bit.
  */
 #ifdef TARGET_X86_64
-#define TCG_TARGET_HAS_extract2_tl      TCG_TARGET_HAS_extract2_i64
-#define TCG_TARGET_deposit_tl_valid     TCG_TARGET_deposit_i64_valid
-#define TCG_TARGET_extract_tl_valid     TCG_TARGET_extract_i64_valid
+#define INDEX_op_extract2_tl            INDEX_op_extract2_i64
 #else
-#define TCG_TARGET_HAS_extract2_tl      TCG_TARGET_HAS_extract2_i32
-#define TCG_TARGET_deposit_tl_valid     TCG_TARGET_deposit_i32_valid
-#define TCG_TARGET_extract_tl_valid     TCG_TARGET_extract_i32_valid
+#define INDEX_op_extract2_tl            INDEX_op_extract2_i32
 #endif
 
 #define MMX_OFFSET(reg)                        \
@@ -286,24 +282,25 @@ static void gen_load(DisasContext *s, X86DecodedInsn *decode, int opn, TCGv v)
                 gen_op_ld_v(s, op->ot, v, s->A0);
             }
 
-        } else if (op->ot == MO_8 && byte_reg_is_xH(s, op->n)) {
-            if (v == s->T0 && decode->e.special == X86_SPECIAL_SExtT0) {
-                tcg_gen_sextract_tl(v, cpu_regs[op->n - 4], 8, 8);
-            } else {
-                tcg_gen_extract_tl(v, cpu_regs[op->n - 4], 8, 8);
-            }
-
         } else if (op->ot < MO_TL && v == s->T0 &&
                    (decode->e.special == X86_SPECIAL_SExtT0 ||
                     decode->e.special == X86_SPECIAL_ZExtT0)) {
-            if (decode->e.special == X86_SPECIAL_SExtT0) {
-                tcg_gen_ext_tl(v, cpu_regs[op->n], op->ot | MO_SIGN);
+            if (op->ot == MO_8 && byte_reg_is_xH(s, op->n)) {
+                if (decode->e.special == X86_SPECIAL_SExtT0) {
+                    tcg_gen_sextract_tl(v, cpu_regs[op->n - 4], 8, 8);
+                } else {
+                    tcg_gen_extract_tl(v, cpu_regs[op->n - 4], 8, 8);
+                }
             } else {
-                tcg_gen_ext_tl(v, cpu_regs[op->n], op->ot);
+                if (decode->e.special == X86_SPECIAL_SExtT0) {
+                    tcg_gen_ext_tl(v, cpu_regs[op->n], op->ot | MO_SIGN);
+                } else {
+                    tcg_gen_ext_tl(v, cpu_regs[op->n], op->ot);
+                }
             }
 
         } else {
-            tcg_gen_mov_tl(v, cpu_regs[op->n]);
+            gen_op_mov_v_reg(s, op->ot, v, op->n);
         }
         break;
     case X86_OP_IMM:
@@ -1443,8 +1440,9 @@ static TCGv gen_bt_mask(DisasContext *s, X86DecodedInsn *decode)
     return mask;
 }
 
-/* Expects truncated bit index in s->T1, 1 << s->T1 in MASK.  */
-static void gen_bt_flags(DisasContext *s, X86DecodedInsn *decode, TCGv src, TCGv mask)
+/* Expects truncated bit index in COUNT, 1 << COUNT in MASK.  */
+static void gen_bt_flags(DisasContext *s, X86DecodedInsn *decode, TCGv src,
+                         TCGv count, TCGv mask)
 {
     TCGv cf;
 
@@ -1467,15 +1465,34 @@ static void gen_bt_flags(DisasContext *s, X86DecodedInsn *decode, TCGv src, TCGv
         decode->cc_src = tcg_temp_new();
         decode->cc_dst = cpu_cc_dst;
         decode->cc_op = CC_OP_SARB + cc_op_size(s->cc_op);
-        tcg_gen_shr_tl(decode->cc_src, src, s->T1);
+        tcg_gen_shr_tl(decode->cc_src, src, count);
     }
 }
 
 static void gen_BT(DisasContext *s, X86DecodedInsn *decode)
 {
-    TCGv mask = gen_bt_mask(s, decode);
+    TCGv count = s->T1;
+    TCGv mask;
 
-    gen_bt_flags(s, decode, s->T0, mask);
+    /*
+     * Try to ensure that the rhs of the TSTNE condition is a constant (and a
+     * power of two), as that is more readily available on most TCG backends.
+     *
+     * For immediate bit number gen_bt_mask()'s output is already a constant;
+     * for register bit number, shift the source right and check bit 0.
+     */
+    if (decode->e.op2 == X86_TYPE_I) {
+        mask = gen_bt_mask(s, decode);
+    } else {
+        MemOp ot = decode->op[1].ot;
+
+        tcg_gen_andi_tl(s->T1, s->T1, (8 << ot) - 1);
+        tcg_gen_shr_tl(s->T0, s->T0, s->T1);
+
+        count = tcg_constant_tl(0);
+        mask = tcg_constant_tl(1);
+    }
+    gen_bt_flags(s, decode, s->T0, count, mask);
 }
 
 static void gen_BTC(DisasContext *s, X86DecodedInsn *decode)
@@ -1491,7 +1508,7 @@ static void gen_BTC(DisasContext *s, X86DecodedInsn *decode)
         tcg_gen_xor_tl(s->T0, s->T0, mask);
     }
 
-    gen_bt_flags(s, decode, old, mask);
+    gen_bt_flags(s, decode, old, s->T1, mask);
 }
 
 static void gen_BTR(DisasContext *s, X86DecodedInsn *decode)
@@ -1509,7 +1526,7 @@ static void gen_BTR(DisasContext *s, X86DecodedInsn *decode)
         tcg_gen_andc_tl(s->T0, s->T0, mask);
     }
 
-    gen_bt_flags(s, decode, old, mask);
+    gen_bt_flags(s, decode, old, s->T1, mask);
 }
 
 static void gen_BTS(DisasContext *s, X86DecodedInsn *decode)
@@ -1525,7 +1542,7 @@ static void gen_BTS(DisasContext *s, X86DecodedInsn *decode)
         tcg_gen_or_tl(s->T0, s->T0, mask);
     }
 
-    gen_bt_flags(s, decode, old, mask);
+    gen_bt_flags(s, decode, old, s->T1, mask);
 }
 
 static void gen_BZHI(DisasContext *s, X86DecodedInsn *decode)
@@ -2997,7 +3014,7 @@ static void gen_PMOVMSKB(DisasContext *s, X86DecodedInsn *decode)
     tcg_gen_ld8u_tl(s->T0, tcg_env, offsetof(CPUX86State, xmm_t0.ZMM_B(vec_len - 1)));
     while (vec_len > 8) {
         vec_len -= 8;
-        if (TCG_TARGET_HAS_extract2_tl) {
+        if (tcg_op_supported(INDEX_op_extract2_tl, TCG_TYPE_TL, 0)) {
             /*
              * Load the next byte of the result into the high byte of T.
              * TCG does a similar expansion of deposit to shl+extract2; by
@@ -3451,7 +3468,7 @@ static void gen_RCL(DisasContext *s, X86DecodedInsn *decode)
     }
 
     /* Compute high part, including incoming carry.  */
-    if (!have_1bit_cin || TCG_TARGET_deposit_tl_valid(1, TARGET_LONG_BITS - 1)) {
+    if (!have_1bit_cin || tcg_op_deposit_valid(TCG_TYPE_TL, 1, TARGET_LONG_BITS - 1)) {
         /* high = (T0 << 1) | cin */
         TCGv cin = have_1bit_cin ? decode->cc_dst : decode->cc_src;
         tcg_gen_deposit_tl(high, cin, s->T0, 1, TARGET_LONG_BITS - 1);
@@ -3503,7 +3520,7 @@ static void gen_RCR(DisasContext *s, X86DecodedInsn *decode)
     }
 
     /* Save incoming carry into high, it will be shifted later.  */
-    if (!have_1bit_cin || TCG_TARGET_deposit_tl_valid(1, TARGET_LONG_BITS - 1)) {
+    if (!have_1bit_cin || tcg_op_deposit_valid(TCG_TYPE_TL, 1, TARGET_LONG_BITS - 1)) {
         TCGv cin = have_1bit_cin ? decode->cc_dst : decode->cc_src;
         tcg_gen_deposit_tl(high, cin, s->T0, 1, TARGET_LONG_BITS - 1);
     } else {

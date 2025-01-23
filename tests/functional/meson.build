@@ -13,18 +13,27 @@ endif
 test_timeouts = {
   'aarch64_aspeed' : 600,
   'aarch64_raspi4' : 480,
+  'aarch64_rme_virt' : 1200,
+  'aarch64_rme_sbsaref' : 1200,
   'aarch64_sbsaref_alpine' : 720,
   'aarch64_sbsaref_freebsd' : 720,
   'aarch64_tuxrun' : 240,
   'aarch64_virt' : 720,
   'acpi_bits' : 420,
-  'arm_aspeed' : 600,
+  'arm_aspeed_palmetto' : 120,
+  'arm_aspeed_romulus' : 120,
+  'arm_aspeed_ast2500' : 480,
+  'arm_aspeed_ast2600' : 720,
+  'arm_aspeed_rainier' : 240,
   'arm_bpim2u' : 500,
   'arm_collie' : 180,
+  'arm_cubieboard' : 360,
   'arm_orangepi' : 540,
+  'arm_quanta_gsj' : 240,
   'arm_raspi2' : 120,
   'arm_tuxrun' : 240,
   'arm_sx1' : 360,
+  'intel_iommu': 300,
   'mips_malta' : 120,
   'netdev_ethtool' : 180,
   'ppc_40p' : 240,
@@ -34,6 +43,8 @@ test_timeouts = {
   'ppc64_tuxrun' : 420,
   'riscv64_tuxrun' : 120,
   's390x_ccw_virtio' : 420,
+  'sh4_tuxrun' : 240,
+  'x86_64_kvm_xen' : 180,
 }
 
 tests_generic_system = [
@@ -52,11 +63,14 @@ tests_aarch64_system_thorough = [
   'aarch64_aspeed',
   'aarch64_raspi3',
   'aarch64_raspi4',
+  'aarch64_rme_virt',
+  'aarch64_rme_sbsaref',
   'aarch64_sbsaref',
   'aarch64_sbsaref_alpine',
   'aarch64_sbsaref_freebsd',
   'aarch64_tuxrun',
   'aarch64_virt',
+  'aarch64_xlnx_versal',
   'multiprocess',
 ]
 
@@ -65,15 +79,25 @@ tests_alpha_system_thorough = [
 ]
 
 tests_arm_system_thorough = [
-  'arm_aspeed',
+  'arm_aspeed_ast1030',
+  'arm_aspeed_palmetto',
+  'arm_aspeed_romulus',
+  'arm_aspeed_ast2500',
+  'arm_aspeed_ast2600',
+  'arm_aspeed_rainier',
   'arm_bpim2u',
   'arm_canona1100',
   'arm_collie',
+  'arm_cubieboard',
+  'arm_emcraft_sf2',
   'arm_integratorcp',
   'arm_orangepi',
+  'arm_quanta_gsj',
   'arm_raspi2',
+  'arm_smdkc210',
   'arm_sx1',
   'arm_vexpress',
+  'arm_virt',
   'arm_tuxrun',
 ]
 
@@ -83,6 +107,10 @@ tests_arm_linuxuser_thorough = [
 
 tests_avr_system_thorough = [
   'avr_mega2560',
+]
+
+tests_hppa_system_quick = [
+  'hppa_seabios',
 ]
 
 tests_i386_system_thorough = [
@@ -97,6 +125,7 @@ tests_m68k_system_thorough = [
   'm68k_mcf5208evb',
   'm68k_nextcube',
   'm68k_q800',
+  'm68k_tuxrun',
 ]
 
 tests_microblaze_system_thorough = [
@@ -205,15 +234,19 @@ tests_x86_64_system_quick = [
   'pc_cpu_hotplug_props',
   'virtio_version',
   'x86_cpu_model_versions',
+  'vnc',
 ]
 
 tests_x86_64_system_thorough = [
   'acpi_bits',
-  'x86_64_tuxrun',
+  'intel_iommu',
   'linux_initrd',
   'multiprocess',
   'netdev_ethtool',
   'virtio_gpu',
+  'x86_64_hotplug_cpu',
+  'x86_64_kvm_xen',
+  'x86_64_tuxrun',
 ]
 
 tests_xtensa_system_thorough = [
