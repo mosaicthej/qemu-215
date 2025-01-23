@@ -9294,7 +9294,6 @@ static abi_long do_printStr(abi_long arg1) {
 }
 #endif /* TARGET_NR_printStr */
 
-#if 0
 #if defined(TARGET_NR_readStr)
 /*
 * arg1: pointer to buffer to read into
@@ -9320,6 +9319,7 @@ static abi_long do_readStr(abi_long arg1, abi_long arg2)
 #endif /* TARGET_NR_readStr */
 
 
+#if 0
 /* Added 2024-02-22
  * Adapted on 2025-01-22
  * Support for floating point I/O
@@ -14075,12 +14075,12 @@ static abi_long do_syscall1(CPUArchState *cpu_env, int num, abi_long arg1,
         return do_printStr(arg1);
 #endif
 
-#if 0
 #if defined(TARGET_NR_readStr)
     case TARGET_NR_readStr:
         return do_readStr(arg1, arg2);
 #endif
 
+#if 0
 /*
  * Modification 2024-02-22
  * Note that those might be architecture-dependent,
