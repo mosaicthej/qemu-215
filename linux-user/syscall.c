@@ -9319,7 +9319,6 @@ static abi_long do_readStr(abi_long arg1, abi_long arg2)
 #endif /* TARGET_NR_readStr */
 
 
-#if 0
 /* Added 2024-02-22
  * Adapted on 2025-01-22
  * Support for floating point I/O
@@ -9338,13 +9337,13 @@ static abi_long do_readStr(abi_long arg1, abi_long arg2)
  */
 static abi_long do_printFloat(abi_long arg1, abi_long arg2, abi_long arg3)
 {
-    float x;
+    float x; const int maxsize = 30;
     x = * (float *) (long *) &arg1;
     
     bool isSci =(arg2 == (abi_long) 'E');
 
     const char* fmtSt = isSci ? "%.*e" : "%.*f";
-    int len = ((unsigned abi_long) arg3 > 30)?30: (int) arg3;
+    int len = ((arg3 > maxsize) && (arg3 < 0)) ? maxsize: (int) arg3;
 
     abi_long ret = (abi_long) printf(fmtSt, len, x);
     fflush(stdout);
@@ -9352,6 +9351,7 @@ static abi_long do_printFloat(abi_long arg1, abi_long arg2, abi_long arg3)
 }
 #endif /* TARGET_NR_printFloat */
 
+#if 0
 #if defined(TARGET_NR_readFloat)
 static abi_long do_readFloat(void)
 {
@@ -14080,7 +14080,6 @@ static abi_long do_syscall1(CPUArchState *cpu_env, int num, abi_long arg1,
         return do_readStr(arg1, arg2);
 #endif
 
-#if 0
 /*
  * Modification 2024-02-22
  * Note that those might be architecture-dependent,
@@ -14092,6 +14091,7 @@ static abi_long do_syscall1(CPUArchState *cpu_env, int num, abi_long arg1,
         return do_printFloat(arg1, arg2, arg3);
 #endif
 
+#if 0
 #if defined(TARGET_NR_readFloat)
     case TARGET_NR_readFloat:
         return do_readFloat();
