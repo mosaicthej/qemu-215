@@ -9164,6 +9164,208 @@ static abi_long do_riscv_hwprobe(CPUArchState *cpu_env, abi_long arg1,
 }
 #endif /* TARGET_NR_riscv_hwprobe */
 
+/* 
+ * Implementations for qemu-215 (2024 winter, updated at 2025 winter)
+ * Modified 2025-01-22
+ * Mark Jia <mark.j@usask.ca>
+ */
+#if 0
+#if defined(TARGET_NR_printInt)
+static abi_long do_printInt(abi_long arg1) {
+    abi_long ret;
+    ret = (abi_long)printf("%ld", (long int) arg1);
+    fflush(stdout);
+    return ret;
+}
+#endif /* TARGET_NR_printInt*/
+
+#if defined(TARGET_NR_readInt)
+static abi_long do_readInt(void) {
+        /* just do scanf */
+    int int_result;
+    int res;
+    res = scanf("%d", &int_result);
+    if (res == EOF) {
+        return 0; /* Return EOF */
+    }
+    return (abi_long)int_result;
+}
+#endif /* TARGET_NR_readInt */
+
+#if defined(TARGET_NR_printChar)
+/*
+* arg1: character to print
+*/
+static abi_long do_printChar(abi_long arg1)
+{
+    char ch = (char)arg1;
+    return get_errno(safe_write(1, &ch, 1)); 
+}
+#endif /* TARGET_NR_printChar */
+
+#if defined(TARGET_NR_readChar)
+/*
+ * read 1 byte.
+ * will print a warning message (to stdout) if anything 
+ * leftover in the buffer.
+ * * */
+static abi_long safe_read1chr(FILE* stream) {
+    unsigned int c1;
+    c1 = getc(stream);
+    if (c1 == EOF){
+        perror("[KERNEL_MSG]: getc error!\n"
+                "\thave you unintentationally pass EOF?");
+        fflush(stderr);
+        clearerr(stream);
+        /*
+         * This enables future invocations.
+         * see `clearerr` info page.
+         * */
+        return -1;
+    }
+    return (abi_long) c1;
+
+}
+
+static abi_long do_readChar(void)
+{
+    /* bruh this is such a simple fix im so dumb 
+     * just do two getchar if 1st is not nl.
+     * if 2nd is not NL, put it back to buffer.
+     * */
+
+    abi_long c1, c2;
+    c1 = safe_read1chr(stdin); /* -1 or 0 means bad, 
+    * safe_read1chr() should already printed error 
+    * will return the same error value (0 or -1) and
+    * let user deal with it.
+    */
+    if(c1=='\n'|| c1 ==0 || c1==-1) return c1;
+
+    /*
+     * Usually, a NL would remain in buffer 
+     * (assume user pressed enter)
+     * an exception would be when user enters \n
+     * and it's the only thing. Or when user enters
+     * EOF.
+     * That means the user really wants \n
+     * lets just return it.
+     *
+     * Note this will return -1 on EOF */
+
+    /* in case user typed a \n, just return. 
+     *
+     * otherwise, check the next char, if \n, skip,
+     * else put it back (with a warning).
+     * */
+    c2 = safe_read1chr(stdin);
+    if (c2!='\n' && c2!=-1 && c2!=0) {/* buffer has somehting else*/
+        c2 = ungetc(c2, stdin);
+        fprintf(stderr,
+                "\n[KERNEL_MSG]: You have something else in the buffer!\n"
+                "\tMake sure you know what you doing...\n"
+                "\teverything after '%c' is put back... \n"
+                "\tNote buffer may have uninteded new-lines...\n", (int) c2);
+    }
+    return c1;
+}
+#endif /* TARGET_NR_readChar */
+
+#if defined(TARGET_NR_printStr)
+/*
+* arg1: pointer to string to print
+*/
+static abi_long do_printStr(abi_long arg1) {
+    char *p;
+    int str_length = 0;
+    const int max_length = 1024;
+
+    if (!(p = lock_user(VERIFY_READ, arg1, max_length, 1))) {
+        return -TARGET_EFAULT;
+    }
+
+    /* Count the length of the string up to max_length or null terminator */
+    while (str_length < max_length && p[str_length]) {
+        str_length++;
+    }
+    /* Perform the write operation to STDOUT */
+    abi_long ret = get_errno(safe_write(1, p, str_length)); 
+    unlock_user(p, arg1, 0);
+    return ret;
+}
+#endif /* TARGET_NR_printStr */
+
+#if defined(TARGET_NR_readStr)
+/*
+* arg1: pointer to buffer to read into
+* Read up to the number of bytes at the passed in argument of `max_len`, 
+* then destroys everything else in the STDIN buffer. 
+* 
+* Will print a warning message if buffer contains more bytes than specified.
+*/
+static abi_long do_readStr(abi_long arg1, abi_long arg2)
+{
+    char *p;
+    abi_long max_length = arg2;
+    if( (p=fgets((char*)(void*)(long)arg1, 
+            max_length, stdin))
+    ==NULL){
+        perror("[KERNEL_ERR]: readStr unexpected error! ");
+        fflush(stderr);
+        clearerr(stdin);
+        return -1;
+    };
+    return (abi_long) strlen(p);
+    }
+#endif /* TARGET_NR_readStr */
+
+
+/* Added 2024-02-22
+ * Adapted on 2025-01-22
+ * Support for floating point I/O
+ * Behaviours should be similar to integer complements
+ * readFloat, printFloat,
+ *
+ * readDouble, printDouble 
+ * can be added as a flag to same call
+ * */
+#if defined(TARGET_NR_printFloat)
+/* @args: arg1 -
+ *  an integer register that is representing
+ *  the float point bit pattern
+ * inspired by:
+ * https://github.com/id-Software/Quake-III-Arena/blob/master/code/game/q_math.c#L552
+ */
+static abi_long do_printFloat(abi_long arg1, abi_long arg2, abi_long arg3)
+{
+    float x;
+    x = * (float *) (long *) &arg1;
+    
+    bool isSci =(arg2 == (abi_long) 'E');
+
+    const char* fmtSt = isSci ? "%.*e" : "%.*f";
+    int len = ((unsigned abi_long) arg3 > 30)?30: (int) arg3;
+
+    abi_long ret = (abi_long) printf(fmtSt, len, x);
+    fflush(stdout);
+    return ret;    
+}
+#endif /* TARGET_NR_printFloat */
+
+#if defined(TARGET_NR_readFloat)
+static abi_long do_readFloat(void)
+{
+    float x;
+    int y;
+    int ret = scanf("%f", &x);
+    if (ret==EOF) return 0; /*return EOF*/
+
+    y = *(int *)(void *)&x;
+    return (abi_long) y;
+}
+#endif /* TARGET_NR_readFloat */
+#endif /* 0 */
+
 #if defined(TARGET_NR_pivot_root) && defined(__NR_pivot_root)
 _syscall2(int, pivot_root, const char *, new_root, const char *, put_old)
 #endif
@@ -13842,7 +14044,59 @@ static abi_long do_syscall1(CPUArchState *cpu_env, int num, abi_long arg1,
     case TARGET_NR_riscv_hwprobe:
         return do_riscv_hwprobe(cpu_env, arg1, arg2, arg3, arg4, arg5);
 #endif
+/*
+* New syscalls for Usask CMPT-215 classroom use (2024 Winter) (updated 2025 W)
+* Modified 2025-01-22
+* Added 2024-01-06
+* Mark Jia <mark.j@usask.ca>
+*/
+#if 0
+#if defined(TARGET_NR_printInt)
+    case TARGET_NR_printInt:
+        return do_printInt(arg1);
+#endif
 
+#if defined(TARGET_NR_readInt)
+    case TARGET_NR_readInt:
+        return do_readInt();
+#endif
+
+#if defined(TARGET_NR_printChar)
+    case TARGET_NR_printChar:
+        return do_printChar(arg1);
+#endif
+
+#if defined(TARGET_NR_readChar)
+    case TARGET_NR_readChar:
+        return do_readChar();
+#endif
+
+#if defined(TARGET_NR_printStr)
+    case TARGET_NR_printStr:
+        return do_printStr(arg1);
+#endif
+
+#if defined(TARGET_NR_readStr)
+    case TARGET_NR_readStr:
+        return do_readStr(arg1, arg2);
+#endif
+
+/*
+ * Modification 2024-02-22
+ * Note that those might be architecture-dependent,
+ * I'm not too sure. But may need to add logic to handle
+ * 32 and 64 bit differently
+ * */
+#if defined(TARGET_NR_printFloat)
+    case TARGET_NR_printFloat:
+        return do_printFloat(arg1, arg2, arg3);
+#endif
+
+#if defined(TARGET_NR_readFloat)
+    case TARGET_NR_readFloat:
+        return do_readFloat();
+#endif
+#endif /* 0 */
     default:
         qemu_log_mask(LOG_UNIMP, "Unsupported syscall: %d\n", num);
         return -TARGET_ENOSYS;
