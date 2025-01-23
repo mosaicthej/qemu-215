@@ -9270,7 +9270,6 @@ static abi_long do_readChar(void)
 }
 #endif /* TARGET_NR_readChar */
 
-#if 0
 #if defined(TARGET_NR_printStr)
 /*
 * arg1: pointer to string to print
@@ -9295,6 +9294,7 @@ static abi_long do_printStr(abi_long arg1) {
 }
 #endif /* TARGET_NR_printStr */
 
+#if 0
 #if defined(TARGET_NR_readStr)
 /*
 * arg1: pointer to buffer to read into
@@ -14070,12 +14070,12 @@ static abi_long do_syscall1(CPUArchState *cpu_env, int num, abi_long arg1,
         return do_readChar();
 #endif
 
-#if 0
 #if defined(TARGET_NR_printStr)
     case TARGET_NR_printStr:
         return do_printStr(arg1);
 #endif
 
+#if 0
 #if defined(TARGET_NR_readStr)
     case TARGET_NR_readStr:
         return do_readStr(arg1, arg2);
