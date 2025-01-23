@@ -9351,7 +9351,6 @@ static abi_long do_printFloat(abi_long arg1, abi_long arg2, abi_long arg3)
 }
 #endif /* TARGET_NR_printFloat */
 
-#if 0
 #if defined(TARGET_NR_readFloat)
 static abi_long do_readFloat(void)
 {
@@ -9364,7 +9363,6 @@ static abi_long do_readFloat(void)
     return (abi_long) y;
 }
 #endif /* TARGET_NR_readFloat */
-#endif /* 0 */
 
 #if defined(TARGET_NR_pivot_root) && defined(__NR_pivot_root)
 _syscall2(int, pivot_root, const char *, new_root, const char *, put_old)
@@ -14091,12 +14089,10 @@ static abi_long do_syscall1(CPUArchState *cpu_env, int num, abi_long arg1,
         return do_printFloat(arg1, arg2, arg3);
 #endif
 
-#if 0
 #if defined(TARGET_NR_readFloat)
     case TARGET_NR_readFloat:
         return do_readFloat();
 #endif
-#endif /* 0 */
     default:
         qemu_log_mask(LOG_UNIMP, "Unsupported syscall: %d\n", num);
         return -TARGET_ENOSYS;
