@@ -9178,7 +9178,6 @@ static abi_long do_printInt(abi_long arg1) {
 }
 #endif /* TARGET_NR_printInt*/
 
-#if 0
 #if defined(TARGET_NR_readInt)
 static abi_long do_readInt(void) {
         /* just do scanf */
@@ -9192,6 +9191,7 @@ static abi_long do_readInt(void) {
 }
 #endif /* TARGET_NR_readInt */
 
+#if 0
 #if defined(TARGET_NR_printChar)
 /*
 * arg1: character to print
@@ -14055,12 +14055,12 @@ static abi_long do_syscall1(CPUArchState *cpu_env, int num, abi_long arg1,
         return do_printInt(arg1);
 #endif
 
-#if 0
 #if defined(TARGET_NR_readInt)
     case TARGET_NR_readInt:
         return do_readInt();
 #endif
 
+#if 0
 #if defined(TARGET_NR_printChar)
     case TARGET_NR_printChar:
         return do_printChar(arg1);
