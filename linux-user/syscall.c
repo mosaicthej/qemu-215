@@ -9169,7 +9169,6 @@ static abi_long do_riscv_hwprobe(CPUArchState *cpu_env, abi_long arg1,
  * Modified 2025-01-22
  * Mark Jia <mark.j@usask.ca>
  */
-#if 0
 #if defined(TARGET_NR_printInt)
 static abi_long do_printInt(abi_long arg1) {
     abi_long ret;
@@ -9179,6 +9178,7 @@ static abi_long do_printInt(abi_long arg1) {
 }
 #endif /* TARGET_NR_printInt*/
 
+#if 0
 #if defined(TARGET_NR_readInt)
 static abi_long do_readInt(void) {
         /* just do scanf */
@@ -14050,12 +14050,12 @@ static abi_long do_syscall1(CPUArchState *cpu_env, int num, abi_long arg1,
 * Added 2024-01-06
 * Mark Jia <mark.j@usask.ca>
 */
-#if 0
 #if defined(TARGET_NR_printInt)
     case TARGET_NR_printInt:
         return do_printInt(arg1);
 #endif
 
+#if 0
 #if defined(TARGET_NR_readInt)
     case TARGET_NR_readInt:
         return do_readInt();
